@@ -50,22 +50,38 @@ CREATE OR REPLACE PACKAGE BODY task_search_pkg AS
           INTO p_total_count
           FROM tasks
          WHERE archived = 0
-           AND LOWER(title) LIKE v_term
-            OR LOWER(description) LIKE v_term
+           AND (
+               LOWER(title) LIKE v_term
+               OR LOWER(description) LIKE v_term
+           )
            AND (p_status IS NULL OR status = p_status);
 
         -- Paginated results using ROWNUM (pre-12c pattern)
         OPEN p_results FOR
-            SELECT id, title, description, status, priority, assignee, created_at
+            SELECT id,
+                   title,
+                   description,
+                   status,
+                   priority,
+                   assignee,
+                   created_at
               FROM (
-                  SELECT t.*, ROWNUM AS rn
+                  SELECT t.*,
+                         ROWNUM AS rn
                     FROM (
-                        SELECT id, title, description, status, priority,
-                               assignee, created_at
+                        SELECT id,
+                               title,
+                               description,
+                               status,
+                               priority,
+                               assignee,
+                               created_at
                           FROM tasks
                          WHERE archived = 0
-                           AND LOWER(title) LIKE v_term
-                            OR LOWER(description) LIKE v_term
+                           AND (
+                               LOWER(title) LIKE v_term
+                               OR LOWER(description) LIKE v_term
+                           )
                            AND (p_status IS NULL OR status = p_status)
                          ORDER BY created_at DESC
                     ) t
